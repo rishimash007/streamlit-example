@@ -4,6 +4,8 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta
 
+st.set_page_config(layout="wide")
+
 # Create a Google Authentication connection object
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
