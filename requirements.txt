@@ -4,3 +4,4 @@ streamlit
 gsheetsdb
 gspread==5.11.1
 gspread-pandas==3.2.3
+matplotlib
