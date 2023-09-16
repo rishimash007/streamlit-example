@@ -2,3 +2,4 @@ altair
 pandas
 streamlit
 gsheetsdb
+gspread==5.11.1
