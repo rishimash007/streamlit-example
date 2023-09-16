@@ -3,6 +3,7 @@ from gspread_pandas import Spread,Client
 import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 
@@ -39,10 +40,10 @@ def clean(df):
     df["Expirary"] = df["Expirary"].apply(lambda x : convert_to_date(x))
     df["Sold"] = df["Sold"].apply(lambda x : pd.to_datetime(x))
 
-    for col in ["Premium","Strike","Total Credit","Cost Avg"]:
+    for col in ["Premium","Strike","Total Credit","Cost Avg","Effective Sell Price", "Effective Buy", "Current Price","Total $ Return","Income"]:
         df[col] = df[col].apply(lambda x : float(x.replace("$", "")))
 
-    for col in ["Annualized Return"]:
+    for col in ["Annualized Return","Effective Return","Premium Return","Margin of error","Margin of error after exercise"]:
         df[col] = df[col].apply(lambda x : float(x.replace("%", "")))
     return df
 
@@ -75,5 +76,6 @@ col0.metric("Days Since Inception", (realized_income["Expirary"].max().date() - 
 col1.metric("Realized Total Income", "${:.1f}".format(income), "$1000")
 col2.metric("Realized Avg. Return (ITD)", "{:.2%}".format(avg_pct_return), "{:.2%} (Annualized)".format(avg_annualized_pct_return))
 
+cmap = plt.cm.get_cmap('RdYlGn')
 
-st.table(df)
+st.dataframe(df.style.background_gradient(cmap=cmap,axis=0))
