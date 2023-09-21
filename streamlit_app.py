@@ -129,7 +129,7 @@ fig.update_traces(
 
 
 col0, col1= st.columns([3,1])
-col0.plotly_chart(fig, use_container_width=False)
+col0.plotly_chart(fig, use_container_width=True)
 col1.metric("Days Since Inception", (realized_income["Expirary"].max().date() - realized_income["Sold"].min().date()).days ,365)
 col1.markdown("---")
 col1.metric("Realized Total Income", "${:.1f}".format(income), "$1000")
