@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 
@@ -45,9 +46,10 @@ def clean(df):
 
     for col in ["Annualized Return","Effective Return","Premium Return","Margin of error","Margin of error after exercise"]:
         df[col] = df[col].apply(lambda x : float(x.replace("%", "")))
-    return df
+    return df.sort_values(by='Expirary')
 
 st.header(':chart_with_upwards_trend: Cloner Portfolio Tracker')
+
 
 # Check whether the sheets exists
 # what_sheets = worksheet_names()
@@ -58,6 +60,8 @@ st.header(':chart_with_upwards_trend: Cloner Portfolio Tracker')
 df = load_the_spreadsheet("main")
 
 df = clean(df)
+
+df['Income_TS'] = df["Income"].cumsum()
 
 df = df[df["Consideration"]=='A']
 
@@ -70,11 +74,67 @@ realized_income["f_tot_ret"] = realized_income["Annualized Return"]*realized_inc
 
 avg_annualized_pct_return = realized_income["f_tot_ret"].sum()/100
 
+fig = px.line(df, x='Expirary', y='Income_TS')
 
-col0, col1, col2= st.columns(3)
-col0.metric("Days Since Inception", (realized_income["Expirary"].max().date() - realized_income["Sold"].min().date()).days ,365)
+fig.update_xaxes(
+    rangeslider_visible=True,
+    rangeselector=dict(
+        buttons=list([
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=3, label="3m", step="month", stepmode="backward"),
+            dict(count=6, label="6m", step="year", stepmode="todate"),
+            dict(count=1, label="YTD", step="year", stepmode="todate"),
+            dict(step="all")
+        ])
+    )
+)
+
+
+
+fig.update_layout(template='plotly_dark',
+                  xaxis_rangeselector_font_color='black',
+                  xaxis_rangeselector_activecolor='white',
+                  xaxis_rangeselector_bgcolor='grey',
+                  font_family=st.config.get_option("theme.font"),
+                  font_size=24,
+                  width=800, height=600,
+                  #title=dict(text='Accumulated Income', font=dict(size=24),  automargin=True),
+
+   # font_family="Courier New",
+    # font_color="blue",
+    # title_font_family="Times New Roman",
+    # title_font_color="red",
+    xaxis_title="Expiry",
+    yaxis_title="Income $",
+    legend_title_font_color="white"
+)
+
+today = datetime.today().date()
+
+# Add a dotted vertical line for today's date
+fig.add_vline(x=today, line_width=5, line_dash="dash", line_color="grey")
+
+fig.update_yaxes(tickformat="$,.0f")
+
+
+fig.update_traces(
+    line_color='#0000ff', line_width=5,
+    hoverlabel=dict(font=dict(size=14, family=st.config.get_option("theme.font")))
+    
+    )
+
+
+
+
+
+
+col0, col1= st.columns([3,1])
+col0.plotly_chart(fig, use_container_width=False)
+col1.metric("Days Since Inception", (realized_income["Expirary"].max().date() - realized_income["Sold"].min().date()).days ,365)
+col1.markdown("---")
 col1.metric("Realized Total Income", "${:.1f}".format(income), "$1000")
-col2.metric("Realized Avg. Return (ITD)", "{:.2%}".format(avg_pct_return), "{:.2%} (Annualized)".format(avg_annualized_pct_return))
+col1.markdown("---")
+col1.metric("Realized Avg. Return (ITD)", "{:.2%}".format(avg_pct_return), "{:.2%} (Annualized)".format(avg_annualized_pct_return))
 
 cmap = plt.cm.get_cmap('RdYlGn')
 
